@@ -95,6 +95,18 @@ spec = do
              in prs_ p s `shouldParse` (pre, drop 1 post)
     rightOrder (manyTill letterChar (char 'd')) "abcd" "abc"
 
+  describe "manyTill_" $ do
+    it "works" . property $ \a' b' c' -> do
+      let [a,b,c] = getNonNegative <$> [a',b',c']
+          p = (,) <$> manyTill_ letterChar (char 'c') <*> many letterChar
+          s = abcRow a b c
+      if c == 0
+        then prs_ p s `shouldFailWith` err (a + b)
+             (ueof <> etok 'c' <> elabel "letter")
+        else let (pre, post) = break (== 'c') s
+             in prs_ p s `shouldParse` ((pre, 'c'), drop 1 post)
+    rightOrder (fmap fst . manyTill_ letterChar $ char 'd') "abcd" "abc"
+
   describe "someTill" $ do
     it "works" . property $ \a' b' c' -> do
       let [a,b,c] = getNonNegative <$> [a',b',c']

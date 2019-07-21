@@ -37,6 +37,7 @@ module Control.Monad.Combinators
   , endBy1
   , many
   , manyTill
+  , manyTill_
   , some
   , someTill
   , C.option
@@ -162,6 +163,8 @@ many p = go id
 -- | @'manyTill' p end@ applies parser @p@ /zero/ or more times until parser
 -- @end@ succeeds. Returns the list of values returned by @p@.
 --
+-- Notice that @end@ result is consumed and lost. Use @manyTill_@ if you wish to keep it.
+--
 -- See also: 'skipMany', 'skipManyTill'.
 
 manyTill :: MonadPlus m => m a -> m end -> m [a]
@@ -175,6 +178,25 @@ manyTill p end = go id
           x <- p
           go (f . (x:))
 {-# INLINE manyTill #-}
+
+-- | @'manyTill_' p end@ applies parser @p@ /zero/ or more times until parser
+-- @end@ succeeds. Returns the list of values returned by @p@ and the @end@ result.
+--
+-- Use @manyTill@ if you have no need in the result of the @end@.
+--
+-- See also: 'skipMany', 'skipManyTill'.
+
+manyTill_ :: MonadPlus m => m a -> m end -> m ([a], end)
+manyTill_ p end = go id
+  where
+    go f = do
+      done <- C.option Nothing (Just <$> end)
+      case done of
+        Just done' -> return (f [], done')
+        Nothing  -> do
+          x <- p
+          go (f . (x:))
+{-# INLINE manyTill_ #-}
 
 -- | @'some' p@ applies the parser @p@ /one/ or more times and returns a
 -- list of the values returned by @p@.
