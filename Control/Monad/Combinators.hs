@@ -168,15 +168,7 @@ many p = go id
 -- See also: 'skipMany', 'skipManyTill'.
 
 manyTill :: MonadPlus m => m a -> m end -> m [a]
-manyTill p end = go id
-  where
-    go f = do
-      done <- C.option False (True <$ end)
-      if done
-        then return (f [])
-        else do
-          x <- p
-          go (f . (x:))
+manyTill p end = fmap fst (manyTill_ p end)
 {-# INLINE manyTill #-}
 
 -- | @'manyTill_' p end@ applies parser @p@ /zero/ or more times until parser
