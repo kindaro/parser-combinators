@@ -43,6 +43,7 @@
 -- composite parsers in @try@ to achieve correct behavior.
 
 {-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE TupleSections #-}
 
 module Control.Applicative.Combinators
   ( -- * Re-exports from "Control.Applicative"
@@ -66,7 +67,9 @@ module Control.Applicative.Combinators
   , endBy
   , endBy1
   , manyTill
+  , manyTill_
   , someTill
+  , someTill_
   , option
   , sepBy
   , sepBy1
@@ -200,13 +203,28 @@ endBy1 p sep = some (p <* sep)
 -- | @'manyTill' p end@ applies parser @p@ /zero/ or more times until parser
 -- @end@ succeeds. Returns the list of values returned by @p@.
 --
+-- Notice that @end@ result is consumed and lost. Use 'manyTill_' if you wish to keep it.
+--
 -- See also: 'skipMany', 'skipManyTill'.
 
 manyTill :: Alternative m => m a -> m end -> m [a]
-manyTill p end = go
-  where
-    go = ([] <$ end) <|> liftA2 (:) p go
+manyTill p end = fst <$> manyTill_ p end
 {-# INLINE manyTill #-}
+
+-- | @'manyTill_' p end@ applies parser @p@ /zero/ or more times until parser
+-- @end@ succeeds. Returns the list of values returned by @p@ and the @end@ result..
+--
+-- Use 'manyTill' if you have no need in the result of the @end@.
+--
+-- See also: 'skipMany', 'skipManyTill'.
+--
+-- @since 1.2.0
+
+manyTill_ :: Alternative m => m a -> m end -> m ([a], end)
+manyTill_ p end = go
+  where
+    go = (([],) <$> end) <|> liftA2 (\x (xs, y) -> (x:xs, y)) p go
+{-# INLINE manyTill_ #-}
 
 -- | @'someTill' p end@ works similarly to @'manyTill' p end@, but @p@
 -- should succeed at least once.
@@ -214,8 +232,19 @@ manyTill p end = go
 -- See also: 'skipSome', 'skipSomeTill'.
 
 someTill :: Alternative m => m a -> m end -> m [a]
-someTill p end = liftA2 (:) p (manyTill p end)
+someTill p end = fst <$> someTill_ p end
 {-# INLINE someTill #-}
+
+-- | @'someTill_' p end@ works similarly to @'manyTill_' p end@, but @p@
+-- should succeed at least once.
+--
+-- See also: 'skipSome', 'skipSomeTill'.
+--
+-- @since 1.2.0
+
+someTill_ :: Alternative m => m a -> m end -> m ([a], end)
+someTill_ p end = liftA2 (\x (xs, y) -> (x:xs, y)) p (manyTill_ p end)
+{-# INLINE someTill_ #-}
 
 -- | @'option' x p@ tries to apply the parser @p@. If @p@ fails without
 -- consuming input, it returns the value @x@, otherwise the value returned
