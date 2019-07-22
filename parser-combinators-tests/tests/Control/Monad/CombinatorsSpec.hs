@@ -126,6 +126,25 @@ spec = do
            in prs_ p s `shouldParse` (pre, drop 1 post)
     rightOrder (someTill letterChar (char 'd')) "abcd" "abc"
 
+  describe "someTill_" $ do
+    it "works" . property $ \a' b' c' -> do
+      let [a,b,c] = getNonNegative <$> [a',b',c']
+          p = (,) <$> someTill_ letterChar (char 'c') <*> many letterChar
+          s = abcRow a b c
+      if | null s ->
+           prs_ p s `shouldFailWith` err 0 (ueof <> elabel "letter")
+         | c == 0 ->
+           prs_ p s `shouldFailWith` err (a + b)
+             (ueof <> etok 'c' <> elabel "letter")
+         | s == "c" ->
+           prs_ p s `shouldFailWith` err 1 (ueof <> etok 'c' <> elabel "letter")
+         | head s == 'c' ->
+           prs_ p s `shouldParse` (("c", 'c'), drop 2 s)
+         | otherwise ->
+           let (pre, post) = break (== 'c') s
+           in prs_ p s `shouldParse` ((pre, 'c'), drop 1 post)
+    rightOrder (fmap fst . someTill_ letterChar $ char 'd') "abcd" "abc"
+
   describe "sepBy" $ do
     it "works" . property $ \n' c' -> do
       let n = getNonNegative n'

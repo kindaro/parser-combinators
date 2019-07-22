@@ -40,6 +40,7 @@ module Control.Monad.Combinators
   , manyTill_
   , some
   , someTill
+  , someTill_
   , C.option
   , sepBy
   , sepBy1
@@ -209,6 +210,17 @@ some p = liftM2 (:) p (many p)
 someTill :: MonadPlus m => m a -> m end -> m [a]
 someTill p end = liftM2 (:) p (manyTill p end)
 {-# INLINE someTill #-}
+
+-- | @'someTill_' p end@ works similarly to @'manyTill_' p end@, but @p@
+-- should succeed at least once.
+--
+-- See also: 'skipSome', 'skipSomeTill'.
+--
+-- @since 1.2.0
+
+someTill_ :: MonadPlus m => m a -> m end -> m ([a], end)
+someTill_ p end = liftM2 (\x (xs, y) -> (x:xs, y)) p (manyTill_ p end)
+{-# INLINE someTill_ #-}
 
 -- | @'sepBy' p sep@ parses /zero/ or more occurrences of @p@, separated by
 -- @sep@. Returns a list of values returned by @p@.
