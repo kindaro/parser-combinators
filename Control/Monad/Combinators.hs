@@ -163,7 +163,7 @@ many p = go id
 -- | @'manyTill' p end@ applies parser @p@ /zero/ or more times until parser
 -- @end@ succeeds. Returns the list of values returned by @p@.
 --
--- Notice that @end@ result is consumed and lost. Use @manyTill_@ if you wish to keep it.
+-- Notice that @end@ result is consumed and lost. Use 'manyTill_' if you wish to keep it.
 --
 -- See also: 'skipMany', 'skipManyTill'.
 
@@ -182,7 +182,7 @@ manyTill p end = go id
 -- | @'manyTill_' p end@ applies parser @p@ /zero/ or more times until parser
 -- @end@ succeeds. Returns the list of values returned by @p@ and the @end@ result.
 --
--- Use @manyTill@ if you have no need in the result of the @end@.
+-- Use 'manyTill' if you have no need in the result of the @end@.
 --
 -- See also: 'skipMany', 'skipManyTill'.
 
