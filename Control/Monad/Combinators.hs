@@ -177,6 +177,8 @@ manyTill p end = fmap fst (manyTill_ p end)
 -- Use 'manyTill' if you have no need in the result of the @end@.
 --
 -- See also: 'skipMany', 'skipManyTill'.
+--
+-- @since 1.2.0
 
 manyTill_ :: MonadPlus m => m a -> m end -> m ([a], end)
 manyTill_ p end = go id
